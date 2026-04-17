@@ -9,789 +9,738 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --black: #07070C;
-    --surface: #0F0F18;
-    --surface2: #16161F;
-    --surface3: #1D1D28;
-    --border: rgba(0,180,216,0.12);
-    --border-strong: rgba(0,180,216,0.25);
-    --cyan: #00B4D8;
-    --cyan-dim: rgba(0,180,216,0.15);
-    --cyan-glow: rgba(0,180,216,0.08);
-    --text: #E8E8E8;
-    --text-muted: #8888A0;
-    --text-dim: #4A4A62;
-    --green: #22C55E;
-    --amber: #F59E0B;
-    --red: #EF4444;
-    --purple: #A78BFA;
-  }
-  html, body { height: 100%; }
-  body {
-    background: var(--black);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
-  #root { min-height: 100vh; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-
-  /* Grid bg */
-  .grid-bg {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.4;
-  }
-
-  /* Status badges */
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-  }
-  .badge-not-contacted { background: rgba(74,74,98,0.3); color: var(--text-muted); border: 1px solid rgba(74,74,98,0.4); }
-  .badge-contacted { background: rgba(0,180,216,0.1); color: var(--cyan); border: 1px solid rgba(0,180,216,0.25); }
-  .badge-interview { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
-  .badge-shortlisted { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
-  .badge-hired { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
-
-  .level-mid { background: rgba(0,180,216,0.08); color: var(--cyan); border: 1px solid rgba(0,180,216,0.2); font-size: 10px; padding: 1px 6px; border-radius: 3px; }
-  .level-senior { background: rgba(245,158,11,0.08); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); font-size: 10px; padding: 1px 6px; border-radius: 3px; }
-
-  /* Tag */
-  .tag {
-    display: inline-block; padding: 2px 7px; border-radius: 3px;
-    font-size: 10px; font-weight: 500;
-    background: var(--surface3); color: var(--text-muted);
-    border: 1px solid var(--border);
-  }
-
-  /* Avatar */
-  .avatar {
-    width: 38px; height: 38px; border-radius: 6px;
-    background: var(--surface3);
-    border: 1px solid var(--border-strong);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; font-weight: 500; color: var(--cyan);
-    flex-shrink: 0;
-  }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 12px; border-radius: 5px; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
-    transition: all 0.15s;
-  }
-  .btn-ghost {
-    background: transparent; color: var(--text-muted);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border-strong); }
-
-  .btn-cyan {
-    background: rgba(0,180,216,0.15); color: var(--cyan);
-    border: 1px solid rgba(0,180,216,0.35);
-  }
-  .btn-cyan:hover { background: rgba(0,180,216,0.25); }
-
-  .btn-sm { padding: 4px 8px; font-size: 11px; }
-  .btn-active { background: var(--surface2); color: var(--text); border-color: var(--border-strong); }
-
-  /* Input */
-  input, textarea, select {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); border-radius: 5px; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; padding: 6px 10px; outline: none; width: 100%;
-    transition: border-color 0.15s;
-  }
-  input:focus, textarea:focus, select:focus { border-color: var(--cyan); }
-  textarea { resize: vertical; min-height: 60px; }
-  select option { background: var(--surface2); }
-
-  /* Modal */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(7,7,12,0.85);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; padding: 20px;
-    backdrop-filter: blur(4px);
-  }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border-strong);
-    border-radius: 10px; width: 100%; max-width: 560px;
-    max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 0 60px rgba(0,0,0,0.6);
-  }
-  .modal-header {
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .modal-body { padding: 20px; }
-  .modal-footer {
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: flex-end; gap: 8px;
-  }
-
-  /* Card */
-  .candidate-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 14px;
-    cursor: pointer; transition: all 0.15s;
-    position: relative;
-  }
-  .candidate-card:hover {
-    border-color: var(--border-strong);
-    background: var(--surface2);
-    transform: translateY(-1px);
-  }
-  .candidate-card.selected {
-    border-color: var(--cyan);
-    background: var(--surface2);
-  }
-
-  /* Kanban column */
-  .kanban-col {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px;
-    min-width: 220px; flex: 1;
-  }
-  .kanban-col-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* Stats */
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 14px 16px;
-    flex: 1;
-  }
-
-  /* Nav pill */
-  .nav-pill {
-    padding: 5px 12px; border-radius: 20px; cursor: pointer;
-    font-size: 12px; font-weight: 500; transition: all 0.15s;
-    border: 1px solid transparent;
-  }
-  .nav-pill.active {
-    background: rgba(0,180,216,0.12);
-    border-color: rgba(0,180,216,0.3);
-    color: var(--cyan);
-  }
-  .nav-pill:not(.active) { color: var(--text-muted); }
-  .nav-pill:not(.active):hover { color: var(--text); }
-
-  /* Agency card */
-  .agency-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 14px 16px;
-  }
-
-  /* Tooltip note */
-  .note-item {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 8px 10px; margin-bottom: 6px;
-  }
-
-  .divider { height: 1px; background: var(--border); margin: 12px 0; }
-
-  .taqa-check {
-    display: inline-flex; align-items: center; gap: 3px;
-    color: var(--cyan); font-size: 10px; font-weight: 600;
-    background: rgba(0,180,216,0.08); border: 1px solid rgba(0,180,216,0.2);
-    padding: 1px 6px; border-radius: 3px;
-  }
-
-  .linkedin-link {
-    color: #0A66C2; font-size: 11px; text-decoration: none;
-    display: inline-flex; align-items: center; gap: 3px;
-    background: rgba(10,102,194,0.08); border: 1px solid rgba(10,102,194,0.2);
-    padding: 2px 6px; border-radius: 3px;
-    transition: background 0.15s;
-  }
-  .linkedin-link:hover { background: rgba(10,102,194,0.15); }
-
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .fade-in { animation: fadeIn 0.2s ease; }
-
-  .section-label {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--text-dim);
-    margin-bottom: 6px;
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F4F8;--surface:#FFFFFF;--surface2:#F5F7FA;--surface3:#EDF0F4;
+  --cyan:#0090B0;--text:#1A2332;--text-muted:#5A6A7E;--text-dim:#94A3B8;
+  --green:#16A34A;--amber:#D97706;--red:#DC2626;--purple:#7C3AED;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+#root{min-height:100vh}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:var(--text-dim);border-radius:2px}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,100,130,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,100,130,.07) 1px,transparent 1px);background-size:40px 40px}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.badge-nc{background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1}
+.badge-co{background:rgba(0,144,176,.08);color:#0070A0;border:1px solid rgba(0,144,176,.25)}
+.badge-in{background:rgba(124,58,237,.08);color:#6D28D9;border:1px solid rgba(124,58,237,.25)}
+.badge-re{background:rgba(220,38,38,.08);color:#B91C1C;border:1px solid rgba(220,38,38,.25)}
+.badge-hi{background:rgba(22,163,74,.08);color:#15803D;border:1px solid rgba(22,163,74,.25)}
+.otw-banner{background:#DCFCE7;border:1px solid #86EFAC;border-radius:5px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#15803D;letter-spacing:.04em;text-transform:uppercase}
+.otw-dot{width:7px;height:7px;border-radius:50%;background:#16A34A;flex-shrink:0;animation:pulse-g 1.8s ease-in-out infinite}
+@keyframes pulse-g{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.avatar{width:42px;height:42px;border-radius:8px;background:rgba(0,144,176,.08);border:1px solid rgba(0,144,176,.2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--cyan);flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .15s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid #CBD5E1}
+.btn-ghost:hover:not(:disabled){background:var(--surface2);color:var(--text)}
+.btn-cyan{background:var(--cyan);color:#fff;border:1px solid var(--cyan)}
+.btn-cyan:hover:not(:disabled){background:#0070A0}
+.btn-danger{background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.25)}
+.btn-danger:hover:not(:disabled){background:rgba(220,38,38,.15)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-act{background:var(--surface3);color:var(--text)}
+input,textarea,select{background:var(--surface);border:1px solid #CBD5E1;color:var(--text);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 11px;outline:none;width:100%;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,144,176,.1)}
+textarea{resize:vertical;min-height:64px}
+.modal-ov{position:fixed;inset:0;background:rgba(15,25,40,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border:1px solid #CBD5E1;border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-hd{padding:20px 22px 16px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between}
+.modal-bd{padding:20px 22px}
+.modal-ft{padding:14px 22px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}
+.stat-card{background:var(--surface);border:1px solid #E2E8F0;border-radius:10px;padding:14px 18px;flex:1;min-width:100px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:all .15s;user-select:none;position:relative;overflow:hidden}
+.stat-card:hover{border-color:rgba(0,144,176,.35);box-shadow:0 3px 10px rgba(0,144,176,.08);transform:translateY(-1px)}
+.stat-card.active{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,144,176,.12);transform:translateY(-1px)}
+.stat-card .act-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--cyan);border-radius:0 0 10px 10px}
+.cand-card{background:var(--surface);border:1px solid #E2E8F0;border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.cand-card:hover{border-color:rgba(0,144,176,.4);box-shadow:0 4px 12px rgba(0,144,176,.1);transform:translateY(-1px)}
+.cand-card.otw{border-left:3px solid #16A34A}
+.company-box{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid #E2E8F0;border-radius:5px;padding:3px 9px;font-size:12px;font-weight:500;color:var(--text-muted)}
+.kan-col{background:var(--surface2);border:1px solid #E2E8F0;border-radius:10px;padding:12px;min-width:220px;flex:1}
+.nav-pill{padding:6px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent;background:none}
+.nav-pill.active{background:rgba(0,144,176,.1);border-color:rgba(0,144,176,.3);color:var(--cyan)}
+.nav-pill:not(.active){color:var(--text-muted)}
+.nav-pill:not(.active):hover{color:var(--text);background:var(--surface2)}
+.note-item{background:var(--surface2);border:1px solid #E2E8F0;border-radius:6px;padding:10px 12px;margin-bottom:6px}
+.divider{height:1px;background:#E2E8F0;margin:14px 0}
+.slabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.li-btn{display:inline-flex;align-items:center;gap:4px;background:#0A66C2;color:#fff!important;font-size:12px;font-weight:500;text-decoration:none;padding:3px 9px;border-radius:4px;transition:background .15s;font-family:'DM Sans',sans-serif}
+.li-btn:hover{background:#004182}
+.sync-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.s-ok{background:var(--green)}.s-busy{background:var(--amber);animation:pulse 1s infinite}.s-err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .2s ease}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner-d{border-color:#E2E8F0;border-top-color:var(--cyan)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;right:24px;padding:11px 18px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:fadeIn .2s ease;font-family:'DM Sans',sans-serif}
+.t-ok{background:#15803D;color:#fff}.t-err{background:var(--red);color:#fff}
+.toggle-wrap{display:flex;align-items:center;gap:10px;cursor:pointer}
+.toggle{width:38px;height:22px;border-radius:11px;background:#CBD5E1;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#16A34A}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(16px)}
+.f-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(0,144,176,.08);border:1px solid rgba(0,144,176,.25);border-radius:20px;padding:3px 10px 3px 12px;font-size:12px;color:#0070A0;font-weight:500}
+.f-pill.grn{background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.25);color:#15803D}
+.f-pill button{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;padding:0;color:inherit;opacity:.7}
+.f-pill button:hover{opacity:1}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sec-line{flex:1;height:1px}
+.agency-card{background:var(--surface);border:1px solid #E2E8F0;border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 </style>
 </head>
 <body>
 <div class="grid-bg"></div>
 <div id="root"></div>
-
 <script type="text/babel">
-const { useState, useMemo, useCallback } = React;
+const {useState,useMemo,useEffect}=React;
 
-const STATUSES = ['Not Contacted','Contacted','Interview','Shortlisted','Hired'];
-const STATUS_CLASS = {
-  'Not Contacted': 'badge-not-contacted',
-  'Contacted': 'badge-contacted',
-  'Interview': 'badge-interview',
-  'Shortlisted': 'badge-shortlisted',
-  'Hired': 'badge-hired',
-};
-const STATUS_DOT = {
-  'Not Contacted': '#4A4A62',
-  'Contacted': '#00B4D8',
-  'Interview': '#A78BFA',
-  'Shortlisted': '#F59E0B',
-  'Hired': '#22C55E',
-};
+const SHEET_URL='https://script.google.com/macros/s/AKfycbw0zTYObHKfBkHewjUPfDipoF0mVpZIq0IAA5J263ZA4U0-Hq6sgKxD8p0eAQvir8Lh0w/exec';
+const STATUSES=['Not Contacted','Contacted','Interview','Rejected','Hired'];
+const SBADGE={'Not Contacted':'badge-nc',Contacted:'badge-co',Interview:'badge-in',Rejected:'badge-re',Hired:'badge-hi'};
+const SDOT={'Not Contacted':'#CBD5E1',Contacted:'#0090B0',Interview:'#7C3AED',Rejected:'#DC2626',Hired:'#16A34A'};
 
-const INITIAL_CANDIDATES = [
-  {id:1, initials:'SA', name:'Shazeb Ahmed', title:'Automation Application Engineer', location:'UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['RTU Test & Commissioning','DEWA Substation Approved'], linkedin:'', source:'Database', agency:''},
-  {id:2, initials:'GD', name:'Gokul Dharmalingam', title:'Electrical Engineer — SCADA & Automation', location:'Abu Dhabi, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Distribution Competency','TAQA Distribution HSE Certificate'], linkedin:'', source:'Database', agency:''},
-  {id:3, initials:'RH', name:'Raja Hasnain Sarwar', title:'TAQA Approved Competent Electrical Engineer', location:'UAE (since 2016)', level:'Senior', status:'Not Contacted', cvUrl:'https://www.scribd.com/document/880846097/Raja-Hasnain-Cv', notes:[], certs:['ADDC Competency D-48268 CP1,CP2,CP5 (33KV+OHL 11KV)','AADC Competency A-7166','ADDC Certificate of Electrician'], linkedin:'', source:'Database', agency:''},
-  {id:4, initials:'MK', name:'Muhammad Salman Khan', title:'Electrical Engineer — PLC, RTU & SCADA Automation', location:'Gulf Region', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['SCE Member','HV/MV/LV Systems Competency'], linkedin:'', source:'Database', agency:''},
-  {id:5, initials:'SA2', name:'Saddam Ahmed', title:'Electrical (Control) Engineer — Substations, SAS, SCMS, SCADA, RTU', location:'Abu Dhabi, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Substation Automation Competency','SAS/SCMS/SCADA/RTU Specialist'], linkedin:'', source:'Database', agency:''},
-  {id:6, initials:'SS', name:'Saad Shabbir', title:'SCADA & Automation Engineer', location:'UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Approved SCADA & Automation','Avanceon UAE Projects'], linkedin:'', source:'Database', agency:''},
-  {id:7, initials:'VG', name:'Veerappan Gurusamy', title:'Lead Electrical Engineer — SCADA/RTU/Relay Integration', location:'Abu Dhabi, UAE', level:'Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Approved','Etihad WE Approved','UAE Utility Experience'], linkedin:'', source:'Database', agency:''},
-  {id:8, initials:'ZR', name:'Zayyan Rafique', title:'SCADA & Telecommunication Lead Engineer', location:'Abu Dhabi, UAE', level:'Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA-Approved Resident Engineer — Telecom','SEWA-Approved Project Manager'], linkedin:'', source:'Database', agency:''},
-  {id:9, initials:'SH', name:'Sheik Hussain Sulaiman', title:'TAQA & SEWA Approved Project Manager — HV Substations', location:'Abu Dhabi, UAE', level:'Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA-D Approved','SEWA Approved','EtihadWE Approved','TRANSCO Approved','PMP Certified'], linkedin:'', source:'Database', agency:''},
-  {id:10, initials:'GT', name:'Geevarghese Thomas', title:'TAQA Transmission & Distribution Approved Competent Electrical Engineer', location:'Abu Dhabi, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Transmission Approved','TAQA Distribution Approved','ADQCC Approved'], linkedin:'', source:'Database', agency:''},
-  {id:11, initials:'ME', name:'Mogdad Elhibir Mustafa Abbas', title:'Electrical Engineer — SCADA, Control Room Operations', location:'Abu Dhabi, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Approval — Competent Person','132/33/11kV Systems'], linkedin:'', source:'Database', agency:''},
-  {id:12, initials:'MJ', name:'Mohammed Jasim Pulikkal', title:'SCADA & Automation Engineer', location:'Abu Dhabi, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Project Exposure via Autochim Systems'], linkedin:'', source:'Database', agency:''},
-  {id:13, initials:'KM', name:'Khalid Mustafa', title:'Protection Engineer — Primary Substations, TAQA Approved up to 33kV', location:'Sharjah, UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Approved up to 33kV','ADQCC Approved','SEC Approved'], linkedin:'', source:'Database', agency:''},
-  {id:14, initials:'MA', name:'Mutaz Abu Issa', title:'Projects Manager — Utilities LV/MV Power', location:'Abu Dhabi, UAE', level:'Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Competency LV/MV up to 33kV (AA & AD)','AADC Competency Card','E1 Certified','ADQCC Approved'], linkedin:'', source:'Database', agency:''},
-  // New candidates from search
-  {id:15, initials:'MU', name:'Muthuramalingam Ulaganathan', title:'Power System Technician — SCADA/RTU/SAS/IED Integration', location:'UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Transmission Experience','RTU Commissioning (Qatar/UAE)','Siemens/GE/Schneider PLC'], linkedin:'https://www.linkedin.com/in/muthuramalingam-ulaganathan-b26059245/', source:'LinkedIn Search', agency:''},
-  {id:16, initials:'FA', name:'Faris Adi', title:'Principal Electrical Engineer — SCADA/DMS/Substation Automation', location:'UAE', level:'Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['FEWA SCADA Integration','TRANSCO Background','McKinsey Certified'], linkedin:'https://www.linkedin.com/in/faris-adi-23495365/', source:'LinkedIn Search', agency:''},
-  {id:17, initials:'AE', name:'Assem A. Elba\'ash', title:'Electrical Engineer — TAQA Distribution Competency up to 33kV', location:'UAE', level:'Mid-Senior', status:'Not Contacted', cvUrl:'', notes:[], certs:['TAQA Distribution Competency up to 33kV','ADDC/AADC Background','SLD & Protection Relay'], linkedin:'https://www.linkedin.com/in/assem-a-elbaash/', source:'LinkedIn Search', agency:''},
+const SEED=[
+  {id:1,initials:'SA',name:'Shazeb Ahmed',title:'Automation Application Engineer',location:'UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:2,initials:'GD',name:'Gokul Dharmalingam',title:'Electrical Engineer — SCADA & Automation',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:3,initials:'RH',name:'Raja Hasnain Sarwar',title:'TAQA Approved Competent Electrical Engineer',location:'UAE (since 2016)',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'https://www.scribd.com/document/880846097/Raja-Hasnain-Cv',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:4,initials:'MK',name:'Muhammad Salman Khan',title:'Electrical Engineer — PLC, RTU & SCADA Automation',location:'Gulf Region',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:5,initials:'SA2',name:'Saddam Ahmed',title:'Electrical (Control) Engineer — SAS, SCMS, SCADA, RTU',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:6,initials:'SS',name:'Saad Shabbir',title:'SCADA & Automation Engineer',location:'UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:7,initials:'VG',name:'Veerappan Gurusamy',title:'Lead Electrical Engineer — SCADA/RTU/Relay Integration',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:8,initials:'ZR',name:'Zayyan Rafique',title:'SCADA & Telecommunication Lead Engineer',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:9,initials:'SH',name:'Sheik Hussain Sulaiman',title:'TAQA & SEWA Approved Project Manager — HV Substations',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:10,initials:'GT',name:'Geevarghese Thomas',title:'TAQA Transmission & Distribution Approved Electrical Engineer',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:11,initials:'ME',name:'Mogdad Elhibir Mustafa Abbas',title:'Electrical Engineer — SCADA, Control Room Operations',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:12,initials:'MJ',name:'Mohammed Jasim Pulikkal',title:'SCADA & Automation Engineer',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:13,initials:'KM',name:'Khalid Mustafa',title:'Protection Engineer — TAQA Approved up to 33kV',location:'Sharjah, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:14,initials:'MA',name:'Mutaz Abu Issa',title:'Projects Manager — Utilities LV/MV Power',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Yes',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Database',agency:'',interviewDate:''},
+  {id:15,initials:'MU',name:'Muthuramalingam Ulaganathan',title:'Power System Technician — SCADA/RTU/SAS/IED',location:'UAE',currentCompany:'TAQA Transmission',status:'Not Contacted',openToWork:false,taqaCertified:'Unknown',email:'',phone:'',cvUrl:'',notes:[],linkedin:'https://www.linkedin.com/in/muthuramalingam-ulaganathan-b26059245/',source:'LinkedIn Search',agency:'',interviewDate:''},
+  {id:16,initials:'FA',name:'Faris Adi',title:'Principal Electrical Engineer — SCADA/DMS/Substation',location:'UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Unknown',email:'',phone:'',cvUrl:'',notes:[],linkedin:'https://www.linkedin.com/in/faris-adi-23495365/',source:'LinkedIn Search',agency:'',interviewDate:''},
+  {id:17,initials:'AE',name:"Assem A. Elba'ash",title:'Electrical Engineer — TAQA Distribution Competency up to 33kV',location:'UAE',currentCompany:'BAIT ALSALAM MEP',status:'Not Contacted',openToWork:false,taqaCertified:'Unknown',email:'',phone:'',cvUrl:'',notes:[],linkedin:'https://www.linkedin.com/in/assem-a-elbaash/',source:'LinkedIn Search',agency:'',interviewDate:''},
 ];
 
-const AGENCIES = [
-  {id:1, name:'NES Fircroft', speciality:'Energy & Power Engineering', contact:'dubai@nesfircroft.com', url:'https://www.nesfircroft.com', region:'UAE/GCC', notes:'Specialist energy staffing, strong ADNOC/TAQA supply chain'},
-  {id:2, name:'Brunel Energy', speciality:'RTU/SCADA/Substation Specialists', contact:'middleeast@brunel.net', url:'https://www.brunel.net', region:'UAE/GCC', notes:'Strong roster of T&D engineers, Abu Dhabi office active'},
-  {id:3, name:'Airswift', speciality:'Engineering & Energy Staffing', contact:'abudhabi@airswift.com', url:'https://www.airswift.com', region:'UAE', notes:'Abu Dhabi focused, handles TAQA competency frameworks'},
-  {id:4, name:'TRS Staffing', speciality:'Power & Utilities Engineering', contact:'uae@trsstaffing.com', url:'https://www.trsstaffing.com', region:'UAE/GCC', notes:'Experienced in utility competency verification for UAE market'},
+const PARTNERS=[
+  {id:1,name:'Autochim Systems',type:'Engineering Contractor — Sourcing Target',tc:'#B45309',tb:'rgba(217,119,6,.07)',tbd:'rgba(217,119,6,.2)',desc:"Abu Dhabi-based systems integrator and TAQA's primary RTU/substation automation contractor. Over 500 major projects delivered since 1996. Specialises in electricity distribution substation automation, SCADA, energy network telemetry, and IED integration.",contact:'info@autochimsystems.com',url:'https://autochimsystems.com',region:'Abu Dhabi, UAE'},
+  {id:2,name:'Axxon HR Solutions',type:'Recruitment Agency',tc:'#0070A0',tb:'rgba(0,144,176,.07)',tbd:'rgba(0,144,176,.2)',desc:'Abu Dhabi-based recruitment agency covering Power & Utilities, Oil & Gas, and Infrastructure.',contact:'info@axxonhr.com',url:'https://axxonhr.com',region:'Abu Dhabi, UAE'},
+  {id:3,name:'Agile Electromechanical Contracting LLC',type:'Engineering Contractor — Sourcing Target',tc:'#B45309',tb:'rgba(217,119,6,.07)',tbd:'rgba(217,119,6,.2)',desc:'Abu Dhabi engineering contractor specialising in SCADA & IED integration, substation automation, RTU configuration, and HT/LT commissioning up to 765kV.',contact:'',url:'https://agileemc.com',region:'Abu Dhabi, UAE'},
+  {id:4,name:'Syscom Automation',type:'Engineering Contractor — Sourcing Target',tc:'#B45309',tb:'rgba(217,119,6,.07)',tbd:'rgba(217,119,6,.2)',desc:'UAE-based turnkey SCADA/RTU/PLC automation contractor with active projects across UAE water and utility infrastructure.',contact:'',url:'https://syscomme.com',region:'Dubai / UAE-wide'},
+  {id:5,name:'BASE Control Tech FZC',type:'Engineering Contractor — Sourcing Target',tc:'#B45309',tb:'rgba(217,119,6,.07)',tbd:'rgba(217,119,6,.2)',desc:'ISO 9001:2015 certified UAE automation company with 19+ years experience in PLC, SCADA, RTU, MCC and IIoT solutions.',contact:'',url:'https://www.basecontroltech.com',region:'UAE'},
+  {id:6,name:'Voltech Engineering Services Co. Ltd',type:'Engineering Contractor',tc:'#B45309',tb:'rgba(217,119,6,.07)',tbd:'rgba(217,119,6,.2)',desc:'Electrical and mechanical engineering contractor covering medium/low voltage power line construction, electrical installations, communication engineering, and networking solutions. Operates across the UMEME and UEDCL networks in East Africa.',contact:'info@voltechengineering.com',url:'https://voltechengineering.com',region:'Kampala, Uganda'},
 ];
 
-function getInitials(name) {
-  return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+const SEED_PROSPECTS=[
+  {id:'p1',name:'Rabik Raja',title:'Senior Electrical Engineer — ADDC/ADQCC Approved | E1 Certificate ADDC | RTU & NCU Panels',location:'Abu Dhabi, UAE',currentCompany:'Platinum Stone Electrical Contracting',linkedin:'https://www.linkedin.com/in/rabik-raja1993/',notes:'ADDC/ADQCC Approved explicitly in LinkedIn headline. Holds E1 Certificate from ADDC. Direct RTU & NCU panel installation experience on ADDC substation projects.',taqaCertified:'Yes'},
+  {id:'p2',name:'Fawad Shabbir',title:'Electrical Engineer — ADDC Competency | DMS/RTU | HV/MV/LV Substations up to 33kV',location:'Al Ain, UAE',currentCompany:'RAY International Group',linkedin:'https://www.linkedin.com/in/fawad-shabbir-3a011b236/',notes:'ADDC Competency card explicitly listed. DMS/RTU installation on 33/11kV substations per ADDC specs. Trained at ADDC Regional Control Centre on SCADA, RTU and DMS.',taqaCertified:'Yes'},
+  {id:'p3',name:'Kumar Chattopadhyay',title:'Electrical / Instrumentation Consultant — SCADA/RTU/DMS | ADWEA (TRANSCO/ADDC) Projects',location:'UAE',currentCompany:'Independent Consultant',linkedin:'https://www.linkedin.com/in/kumar-chattopadhyay-4b9a783a/',notes:'Extensive ADWEA (TRANSCO/ADDC) project history. Integrated 132/22kV and 220/33kV substations with ADDC DMS per approved TIP lists. RTU field integration and SCMS/SCADA commissioning.',taqaCertified:'Yes'},
+  {id:'p4',name:'Arjun Muralidharan',title:'Control System Manager — SCADA/PLC/RTU | ADDC & ADSSC Client Projects | UAE',location:'UAE',currentCompany:'FuzzyLogicAutomation',linkedin:'https://www.linkedin.com/in/arjun-muralidharan-aba9a2a4/',notes:'10 years UAE experience delivering SCADA, PLC and RTU work directly for ADDC and ADSSC clients. Multi-brand RTU/SCADA (Siemens, Schneider, ABB, Wonderware).',taqaCertified:'Unknown'},
+  {id:'p5',name:'Shajahan Sulaiman',title:'Project Manager — RTU/SCADA/DMS | 27 Years | ADWEA/ADSSC/ADNOC Projects | Abu Dhabi',location:'Abu Dhabi, UAE',currentCompany:'Silvertech Middle-East',linkedin:'https://www.linkedin.com/in/shajahan-sulaiman-183baa40/',notes:'27 years in Abu Dhabi EPC. RTU, SCADA and DMS execution for ADSSC (ADWEA), GASCO, ADCO, ADNOC Offshore. Long tenure at Controls & Application Emirates (CAE) Abu Dhabi. PMP certified.',taqaCertified:'Unknown'},
+];
+
+const LI_SEARCHES=[
+  {label:'ADDC Approved · RTU · SCADA · UAE',url:'https://www.linkedin.com/search/results/people/?keywords=ADDC%20approved%20competency%20RTU%20SCADA%20engineer%20UAE'},
+  {label:'TAQA · TRANSCO · RTU · Abu Dhabi',url:'https://www.linkedin.com/search/results/people/?keywords=TAQA%20TRANSCO%20RTU%20substation%20automation%20engineer%20Abu%20Dhabi'},
+  {label:'ADDC Competency · Substation · DMS',url:'https://www.linkedin.com/search/results/people/?keywords=ADDC%20competency%20substation%20DMS%20RTU%20engineer'},
+  {label:'TAQA Distribution · SCMS · UAE',url:'https://www.linkedin.com/search/results/people/?keywords=TAQA%20distribution%20SCMS%20RTU%20IEC%2061850%20UAE'},
+  {label:'Open to Work · ADDC · TAQA · UAE',url:'https://www.linkedin.com/search/results/people/?keywords=ADDC%20TAQA%20RTU%20SCADA%20engineer%20open%20to%20work%20UAE'},
+  {label:'Google · ADDC Approved · RTU',url:'https://www.google.com/search?q=site:linkedin.com/in+%22ADDC%22+%22approved%22+OR+%22competency%22+%22RTU%22+UAE'},
+];
+
+function getInits(n){return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+function fmtDate(iso){if(!iso)return'';try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}catch{return iso}}
+function pb(v){if(typeof v==='boolean')return v;if(typeof v==='string')return v.toLowerCase()==='true';return false}
+function normTC(v){if(v===true||v==='true')return'Yes';if(v===false||v==='false')return'No';if(!v||v==='')return'Unknown';return v}
+
+async function apiGet(){const r=await fetch(`${SHEET_URL}?action=getCandidates`);return r.json()}
+async function apiSave(c){const r=await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({action:'saveCandidate',candidate:c})});return r.json()}
+async function apiDel(id){const r=await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({action:'deleteCandidate',id})});return r.json()}
+
+function TCBadge({v}){
+  if(v==='Yes')return <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(0,144,176,.08)',border:'1px solid rgba(0,144,176,.3)',borderRadius:4,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#0070A0',letterSpacing:'.04em'}}>✓ TAQA Certified</span>;
+  if(v==='No')return <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(220,38,38,.06)',border:'1px solid rgba(220,38,38,.2)',borderRadius:4,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#B91C1C',letterSpacing:'.04em'}}>✗ Not Certified</span>;
+  return <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'#F1F5F9',border:'1px solid #CBD5E1',borderRadius:4,padding:'2px 8px',fontSize:11,fontWeight:600,color:'#94A3B8',letterSpacing:'.04em'}}>? TAQA Unknown</span>;
 }
 
-function formatDate(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+function Toast({msg,type,onDone}){
+  useEffect(()=>{const t=setTimeout(onDone,3000);return()=>clearTimeout(t)},[]);
+  return <div className={`toast ${type==='error'?'t-err':'t-ok'}`}>{msg}</div>;
 }
 
-// Modal for candidate detail / edit
-function CandidateModal({ candidate, onClose, onUpdate }) {
-  const [edit, setEdit] = useState({...candidate});
-  const [noteText, setNoteText] = useState('');
-  const [tab, setTab] = useState('details');
+function TACert({val,onChange}){
+  const opts=[
+    {v:'Yes',label:'✓ Yes',ac:'#0090B0',ab:'rgba(0,144,176,.06)',at:'#0070A0'},
+    {v:'No',label:'✗ No',ac:'#DC2626',ab:'rgba(220,38,38,.04)',at:'#B91C1C'},
+    {v:'Unknown',label:'? Unknown',ac:'#94A3B8',ab:'#F8FAFC',at:'#64748B'},
+  ];
+  return(
+    <div style={{display:'flex',gap:8}}>
+      {opts.map(o=>(
+        <button key={o.v} onClick={()=>onChange(o.v)}
+          style={{flex:1,padding:'10px 6px',borderRadius:6,border:`2px solid ${val===o.v?o.ac:'#E2E8F0'}`,background:val===o.v?o.ab:'var(--surface)',cursor:'pointer',fontFamily:'DM Sans,sans-serif',fontWeight:600,fontSize:13,color:val===o.v?o.at:'var(--text-muted)',transition:'all .15s'}}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-  function addNote() {
-    if (!noteText.trim()) return;
-    const note = { id: Date.now(), text: noteText.trim(), ts: new Date().toISOString() };
-    const updated = {...edit, notes: [note, ...edit.notes]};
-    setEdit(updated);
-    setNoteText('');
-  }
-
-  function deleteNote(id) {
-    setEdit(prev => ({...prev, notes: prev.notes.filter(n=>n.id!==id)}));
-  }
-
-  return (
-    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+function CandModal({cand,onClose,onUpdate,onDelete,saving}){
+  const [e,setE]=useState({...cand,notes:Array.isArray(cand.notes)?cand.notes:[],openToWork:pb(cand.openToWork),taqaCertified:normTC(cand.taqaCertified),email:cand.email||'',phone:cand.phone||'',currentCompany:cand.currentCompany||''});
+  const [nt,setNt]=useState('');
+  const [tab,setTab]=useState('details');
+  function addNote(){if(!nt.trim())return;setE(p=>({...p,notes:[{id:Date.now(),text:nt.trim(),ts:new Date().toISOString()},...p.notes]}));setNt('')}
+  return(
+    <div className="modal-ov" onClick={ev=>{if(ev.target===ev.currentTarget)onClose()}}>
       <div className="modal fade-in">
-        <div className="modal-header">
+        <div className="modal-hd">
           <div style={{display:'flex',alignItems:'center',gap:12}}>
-            <div className="avatar" style={{width:42,height:42,fontSize:13}}>{edit.initials||getInitials(edit.name)}</div>
+            <div className="avatar">{e.initials||getInits(e.name)}</div>
             <div>
-              <div style={{fontWeight:600,fontSize:15}}>{edit.name}</div>
-              <div style={{color:'var(--text-muted)',fontSize:12}}>{edit.title}</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:3}}>
+                <span style={{fontWeight:600,fontSize:16}}>{e.name}</span>
+                {e.openToWork&&<div className="otw-banner"><div className="otw-dot"/>Open to Work</div>}
+              </div>
+              <div style={{color:'var(--text-muted)',fontSize:12}}>{e.title}</div>
             </div>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
         </div>
-
-        {/* Tabs */}
-        <div style={{display:'flex',gap:4,padding:'10px 20px 0',borderBottom:'1px solid var(--border)'}}>
+        <div style={{display:'flex',gap:4,padding:'10px 22px 0',borderBottom:'1px solid #E2E8F0'}}>
           {['details','activity','cv'].map(t=>(
-            <button key={t} className={`nav-pill ${tab===t?'active':''}`} onClick={()=>setTab(t)}
-              style={{borderRadius:6,padding:'4px 12px'}}>
+            <button key={t} className={`nav-pill ${tab===t?'active':''}`} style={{borderRadius:6,padding:'5px 14px'}} onClick={()=>setTab(t)}>
               {t.charAt(0).toUpperCase()+t.slice(1)}
             </button>
           ))}
         </div>
-
-        <div className="modal-body">
-          {tab==='details' && (
-            <div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
-                <div>
-                  <div className="section-label">Status</div>
-                  <select value={edit.status} onChange={e=>setEdit(p=>({...p,status:e.target.value}))}>
+        <div className="modal-bd">
+          {tab==='details'&&(
+            <div style={{display:'grid',gap:12}}>
+              <div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                  <div className="slabel" style={{marginBottom:0}}>Role / Headline</div>
+                  {e.linkedin&&<a href={e.linkedin} target="_blank" style={{display:'inline-flex',alignItems:'center',gap:4,fontSize:11,color:'#0A66C2',textDecoration:'none',background:'rgba(10,102,194,.06)',border:'1px solid rgba(10,102,194,.2)',padding:'2px 8px',borderRadius:4}}>in Open LinkedIn → copy headline</a>}
+                </div>
+                <input value={e.title||''} onChange={ev=>setE(p=>({...p,title:ev.target.value}))} placeholder="e.g. SCADA Engineer — RTU Automation"/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                <div><div className="slabel">Status</div>
+                  <select value={e.status} onChange={ev=>setE(p=>({...p,status:ev.target.value}))}>
                     {STATUSES.map(s=><option key={s}>{s}</option>)}
                   </select>
                 </div>
-                <div>
-                  <div className="section-label">Level</div>
-                  <select value={edit.level} onChange={e=>setEdit(p=>({...p,level:e.target.value}))}>
-                    <option>Mid-Senior</option><option>Senior</option><option>Junior</option><option>Lead</option>
-                  </select>
+                <div><div className="slabel">Interview Date</div>
+                  <input type="date" value={e.interviewDate||''} onChange={ev=>setE(p=>({...p,interviewDate:ev.target.value}))}/>
                 </div>
-                <div>
-                  <div className="section-label">Location</div>
-                  <input value={edit.location} onChange={e=>setEdit(p=>({...p,location:e.target.value}))}/>
+                <div><div className="slabel">Location</div>
+                  <input value={e.location||''} onChange={ev=>setE(p=>({...p,location:ev.target.value}))}/>
                 </div>
-                <div>
-                  <div className="section-label">Source</div>
-                  <input value={edit.source} onChange={e=>setEdit(p=>({...p,source:e.target.value}))}/>
+                <div><div className="slabel">Current Company</div>
+                  <input value={e.currentCompany||''} onChange={ev=>setE(p=>({...p,currentCompany:ev.target.value}))} placeholder="e.g. Autochim Systems"/>
                 </div>
               </div>
-
-              <div style={{marginBottom:14}}>
-                <div className="section-label">LinkedIn URL</div>
-                <input placeholder="https://linkedin.com/in/..." value={edit.linkedin}
-                  onChange={e=>setEdit(p=>({...p,linkedin:e.target.value}))}/>
-              </div>
-
-              <div style={{marginBottom:14}}>
-                <div className="section-label">Certifications / Competencies</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                  {edit.certs.map((c,i)=>(
-                    <span key={i} className="tag" style={{cursor:'pointer'}}
-                      onClick={()=>setEdit(p=>({...p,certs:p.certs.filter((_,j)=>j!==i)}))}
-                      title="Click to remove">
-                      {c} <span style={{color:'var(--text-dim)',marginLeft:2}}>×</span>
-                    </span>
-                  ))}
+              <div style={{background:e.openToWork?'#F0FDF4':'var(--surface2)',border:`1px solid ${e.openToWork?'#86EFAC':'#E2E8F0'}`,borderRadius:8,padding:'12px 14px'}}>
+                <div className="toggle-wrap" onClick={()=>setE(p=>({...p,openToWork:!p.openToWork}))}>
+                  <div className={`toggle ${e.openToWork?'on':''}`}/>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:13,color:e.openToWork?'#15803D':'var(--text)'}}>{e.openToWork?'✓ Open to Work':'Mark as Open to Work'}</div>
+                    <div style={{fontSize:11,color:'var(--text-muted)',marginTop:1}}>Toggle on when confirmed actively looking</div>
+                  </div>
                 </div>
               </div>
-
-              {edit.interviewDate && (
-                <div style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',borderRadius:6,padding:'8px 12px',marginBottom:14}}>
-                  <span style={{color:'#A78BFA',fontSize:12}}>◆ Interview scheduled: {formatDate(edit.interviewDate)}</span>
+              <div><div className="slabel">LinkedIn URL</div>
+                <input placeholder="https://linkedin.com/in/..." value={e.linkedin||''} onChange={ev=>setE(p=>({...p,linkedin:ev.target.value}))}/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                <div><div className="slabel">Email</div>
+                  <input type="email" placeholder="name@email.com" value={e.email||''} onChange={ev=>setE(p=>({...p,email:ev.target.value}))}/>
                 </div>
-              )}
-              <div style={{marginBottom:14}}>
-                <div className="section-label">Interview Date</div>
-                <input type="date" value={edit.interviewDate||''} onChange={e=>setEdit(p=>({...p,interviewDate:e.target.value}))}/>
+                <div><div className="slabel">Mobile / WhatsApp</div>
+                  <input type="tel" placeholder="+971 50 000 0000" value={e.phone||''} onChange={ev=>setE(p=>({...p,phone:ev.target.value}))}/>
+                </div>
+              </div>
+              <div><div className="slabel">TAQA Certified</div>
+                <TACert val={e.taqaCertified} onChange={v=>setE(p=>({...p,taqaCertified:v}))}/>
               </div>
             </div>
           )}
-
-          {tab==='activity' && (
+          {tab==='activity'&&(
             <div>
               <div style={{marginBottom:12}}>
-                <div className="section-label">Add note</div>
-                <textarea placeholder="Log a call, email, or update..." value={noteText}
-                  onChange={e=>setNoteText(e.target.value)} style={{marginBottom:6}}/>
+                <div className="slabel">Add note</div>
+                <textarea placeholder="Log a call, email, or update…" value={nt} onChange={ev=>setNt(ev.target.value)} style={{marginBottom:7}}/>
                 <button className="btn btn-cyan btn-sm" onClick={addNote}>+ Add note</button>
               </div>
               <div className="divider"/>
-              {edit.notes.length===0 && <div style={{color:'var(--text-dim)',fontSize:13,textAlign:'center',padding:'20px 0'}}>No activity yet.</div>}
-              {edit.notes.map(n=>(
-                <div key={n.id} className="note-item">
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                    <div style={{fontSize:13}}>{n.text}</div>
-                    <button onClick={()=>deleteNote(n.id)} style={{background:'none',border:'none',color:'var(--text-dim)',cursor:'pointer',fontSize:11,marginLeft:8}}>✕</button>
+              {(e.notes||[]).length===0
+                ?<div style={{color:'var(--text-dim)',fontSize:13,textAlign:'center',padding:'20px 0'}}>No activity yet.</div>
+                :(e.notes||[]).map(n=>(
+                  <div key={n.id} className="note-item">
+                    <div style={{display:'flex',justifyContent:'space-between'}}>
+                      <div style={{fontSize:13,lineHeight:1.5}}>{n.text}</div>
+                      <button onClick={()=>setE(p=>({...p,notes:p.notes.filter(x=>x.id!==n.id)}))} style={{background:'none',border:'none',color:'var(--text-dim)',cursor:'pointer',marginLeft:8}}>✕</button>
+                    </div>
+                    <div style={{color:'var(--text-dim)',fontSize:11,marginTop:4}}>{fmtDate(n.ts)}</div>
                   </div>
-                  <div style={{color:'var(--text-dim)',fontSize:11,marginTop:4}}>{formatDate(n.ts)}</div>
-                </div>
-              ))}
+                ))
+              }
             </div>
           )}
-
-          {tab==='cv' && (
-            <div>
-              <div className="section-label">CV / Portfolio Link</div>
-              <input placeholder="https://..." value={edit.cvUrl||''}
-                onChange={e=>setEdit(p=>({...p,cvUrl:e.target.value}))} style={{marginBottom:12}}/>
-              {edit.cvUrl && (
-                <a href={edit.cvUrl} target="_blank" className="btn btn-cyan" style={{textDecoration:'none',display:'inline-flex'}}>
-                  ↗ Open CV
-                </a>
-              )}
+          {tab==='cv'&&(
+            <div style={{display:'grid',gap:14}}>
+              <div><div className="slabel">CV / Portfolio Link</div>
+                <input placeholder="https://..." value={e.cvUrl||''} onChange={ev=>setE(p=>({...p,cvUrl:ev.target.value}))}/>
+                {e.cvUrl&&<a href={e.cvUrl} target="_blank" className="btn btn-cyan" style={{textDecoration:'none',display:'inline-flex',marginTop:8}}>↗ Open CV</a>}
+              </div>
               <div className="divider"/>
-              <div className="section-label">LinkedIn Profile</div>
-              {edit.linkedin ? (
-                <a href={edit.linkedin} target="_blank" className="linkedin-link" style={{fontSize:12}}>
-                  in Open LinkedIn Profile ↗
-                </a>
-              ) : (
-                <div style={{color:'var(--text-dim)',fontSize:12}}>No LinkedIn URL added — set it in Details tab.</div>
-              )}
+              <div><div className="slabel">LinkedIn</div>
+                {e.linkedin?<a href={e.linkedin} target="_blank" style={{color:'#0A66C2',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4,background:'rgba(10,102,194,.06)',border:'1px solid rgba(10,102,194,.2)',padding:'5px 12px',borderRadius:4,fontSize:13}}>in Open LinkedIn Profile ↗</a>
+                  :<div style={{color:'var(--text-dim)',fontSize:13}}>No LinkedIn URL — add it in the Details tab.</div>}
+              </div>
             </div>
           )}
         </div>
-
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-cyan" onClick={()=>{onUpdate(edit);onClose();}}>Save changes</button>
+        <div className="modal-ft">
+          <button className="btn btn-danger btn-sm" disabled={saving} onClick={()=>onDelete(e.id)}>Delete</button>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn btn-cyan" disabled={saving} onClick={()=>onUpdate(e)}>
+              {saving?<><div className="spinner" style={{width:14,height:14}}/>Saving…</>:'Save changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// Add candidate modal
-function AddCandidateModal({ onClose, onAdd }) {
-  const [form, setForm] = useState({
-    name:'', title:'', location:'Abu Dhabi, UAE', level:'Mid-Senior',
-    status:'Not Contacted', cvUrl:'', notes:[], certs:[], linkedin:'', source:'Manual Add', agency:''
-  });
-  const [certInput, setCertInput] = useState('');
-
-  function addCert() {
-    if (!certInput.trim()) return;
-    setForm(p=>({...p,certs:[...p.certs,certInput.trim()]}));
-    setCertInput('');
-  }
-
-  return (
-    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+function AddModal({onClose,onAdd,saving}){
+  const [f,setF]=useState({name:'',title:'',location:'Abu Dhabi, UAE',currentCompany:'',status:'Not Contacted',openToWork:false,taqaCertified:'Unknown',email:'',phone:'',cvUrl:'',notes:[],linkedin:'',source:'Manual Add',agency:'',interviewDate:''});
+  return(
+    <div className="modal-ov" onClick={ev=>{if(ev.target===ev.currentTarget)onClose()}}>
       <div className="modal fade-in">
-        <div className="modal-header">
-          <span style={{fontWeight:600}}>Add New Candidate</span>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body" style={{display:'grid',gap:10}}>
-          <div><div className="section-label">Full Name *</div><input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} placeholder="e.g. Ahmed Al-Mansoori"/></div>
-          <div><div className="section-label">Role / Title *</div><input value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} placeholder="e.g. SCADA Engineer — RTU Automation"/></div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-            <div><div className="section-label">Location</div><input value={form.location} onChange={e=>setForm(p=>({...p,location:e.target.value}))}/></div>
-            <div><div className="section-label">Level</div>
-              <select value={form.level} onChange={e=>setForm(p=>({...p,level:e.target.value}))}>
-                <option>Junior</option><option>Mid-Senior</option><option>Senior</option><option>Lead</option>
+        <div className="modal-hd"><span style={{fontWeight:600,fontSize:15}}>Add New Candidate</span><button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button></div>
+        <div className="modal-bd" style={{display:'grid',gap:12}}>
+          <div><div className="slabel">Full Name *</div><input value={f.name} onChange={ev=>setF(p=>({...p,name:ev.target.value}))} placeholder="e.g. Ahmed Al-Mansoori"/></div>
+          <div><div className="slabel">Role / Headline *</div><input value={f.title} onChange={ev=>setF(p=>({...p,title:ev.target.value}))} placeholder="e.g. SCADA Engineer — RTU Automation"/></div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+            <div><div className="slabel">Location</div><input value={f.location} onChange={ev=>setF(p=>({...p,location:ev.target.value}))}/></div>
+            <div><div className="slabel">Current Company</div><input value={f.currentCompany} onChange={ev=>setF(p=>({...p,currentCompany:ev.target.value}))} placeholder="e.g. Autochim Systems"/></div>
+            <div><div className="slabel">Source</div>
+              <select value={f.source} onChange={ev=>setF(p=>({...p,source:ev.target.value}))}>
+                <option>Manual Add</option><option>LinkedIn Search</option><option>Agency</option><option>Database</option><option>Referral</option>
               </select>
             </div>
+            <div><div className="slabel">LinkedIn</div><input value={f.linkedin} onChange={ev=>setF(p=>({...p,linkedin:ev.target.value}))} placeholder="linkedin.com/in/..."/></div>
+            <div><div className="slabel">Email</div><input type="email" value={f.email} onChange={ev=>setF(p=>({...p,email:ev.target.value}))} placeholder="name@email.com"/></div>
+            <div><div className="slabel">Mobile / WhatsApp</div><input type="tel" value={f.phone} onChange={ev=>setF(p=>({...p,phone:ev.target.value}))} placeholder="+971 50 000 0000"/></div>
+            <div><div className="slabel">CV URL</div><input value={f.cvUrl} onChange={ev=>setF(p=>({...p,cvUrl:ev.target.value}))} placeholder="https://..."/></div>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-            <div><div className="section-label">LinkedIn</div><input value={form.linkedin} onChange={e=>setForm(p=>({...p,linkedin:e.target.value}))} placeholder="linkedin.com/in/..."/></div>
-            <div><div className="section-label">CV URL</div><input value={form.cvUrl} onChange={e=>setForm(p=>({...p,cvUrl:e.target.value}))} placeholder="https://..."/></div>
-          </div>
-          <div>
-            <div className="section-label">Certifications / Competencies</div>
-            <div style={{display:'flex',gap:6,marginBottom:6}}>
-              <input value={certInput} onChange={e=>setCertInput(e.target.value)} placeholder="e.g. TAQA Distribution Competency" onKeyDown={e=>{if(e.key==='Enter')addCert()}}/>
-              <button className="btn btn-ghost btn-sm" onClick={addCert} style={{whiteSpace:'nowrap'}}>+ Add</button>
-            </div>
-            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-              {form.certs.map((c,i)=><span key={i} className="tag">{c}</span>)}
-            </div>
-          </div>
-          <div><div className="section-label">Source</div>
-            <select value={form.source} onChange={e=>setForm(p=>({...p,source:e.target.value}))}>
-              <option>Manual Add</option><option>LinkedIn Search</option><option>Agency</option><option>Database</option><option>Referral</option>
-            </select>
-          </div>
+          <div><div className="slabel">TAQA Certified</div><TACert val={f.taqaCertified} onChange={v=>setF(p=>({...p,taqaCertified:v}))}/></div>
         </div>
-        <div className="modal-footer">
+        <div className="modal-ft" style={{justifyContent:'flex-end'}}>
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-cyan" onClick={()=>{
-            if(!form.name.trim()||!form.title.trim()) return;
-            onAdd({...form, id:Date.now(), initials:getInitials(form.name)});
-            onClose();
-          }}>Add Candidate</button>
+          <button className="btn btn-cyan" disabled={saving||!f.name.trim()||!f.title.trim()} onClick={()=>onAdd({...f,id:Date.now(),initials:getInits(f.name)})}>
+            {saving?<><div className="spinner" style={{width:14,height:14}}/>Saving…</>:'Add Candidate'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// Candidate card component
-function CandidateCard({ candidate, onClick }) {
-  return (
-    <div className="candidate-card" onClick={onClick}>
-      <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:8}}>
-        <div className="avatar">{candidate.initials||getInitials(candidate.name)}</div>
+function CandCard({cand,onClick}){
+  const otw=pb(cand.openToWork);
+  return(
+    <div className={`cand-card${otw?' otw':''}`} onClick={onClick}>
+      {otw&&<div className="otw-banner" style={{marginBottom:10}}><div className="otw-dot"/>Open to Work — actively looking</div>}
+      <div style={{display:'flex',alignItems:'flex-start',gap:12,marginBottom:10}}>
+        <div className="avatar">{cand.initials||getInits(cand.name)}</div>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:600,fontSize:13,marginBottom:2}}>{candidate.name}</div>
-          <div style={{color:'var(--text-muted)',fontSize:11,lineHeight:1.4}}>{candidate.title}</div>
+          <div style={{fontWeight:600,fontSize:15,marginBottom:3}}>{cand.name}</div>
+          <div style={{color:'var(--text-muted)',fontSize:12.5,lineHeight:1.4}}>{cand.title}</div>
         </div>
       </div>
-      <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:8}}>
-        <span className={`badge ${STATUS_CLASS[candidate.status]}`}>{candidate.status}</span>
-        <span className={candidate.level==='Senior'?'level-senior':'level-mid'}>{candidate.level}</span>
-        {candidate.linkedin && <span style={{width:6,height:6,borderRadius:2,background:'#0A66C2',display:'inline-block'}} title="Has LinkedIn"/>}
-        {candidate.cvUrl && <span style={{width:6,height:6,borderRadius:2,background:'#22C55E',display:'inline-block'}} title="Has CV"/>}
-        {candidate.notes.length>0 && <span style={{color:'var(--text-dim)',fontSize:10}}>{candidate.notes.length} note{candidate.notes.length>1?'s':''}</span>}
+      {cand.currentCompany&&(
+        <div style={{marginBottom:8}}>
+          <span className="company-box">🏢 {cand.currentCompany}</span>
+        </div>
+      )}
+      <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:10}}>
+        <span className={`badge ${SBADGE[cand.status]||'badge-nc'}`}>{cand.status}</span>
+        <TCBadge v={cand.taqaCertified}/>
+        {(cand.notes||[]).length>0&&<span style={{color:'var(--text-dim)',fontSize:11}}>{cand.notes.length} note{cand.notes.length>1?'s':''}</span>}
       </div>
-      <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
-        {candidate.certs.slice(0,2).map((c,i)=><span key={i} className="tag">{c}</span>)}
-        {candidate.certs.length>2 && <span className="tag" style={{color:'var(--text-dim)'}}>+{candidate.certs.length-2}</span>}
-      </div>
-      <div style={{marginTop:8,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <span style={{color:'var(--text-dim)',fontSize:11}}>📍 {candidate.location}</span>
-        {candidate.interviewDate && <span style={{color:'#A78BFA',fontSize:10}}>◆ {formatDate(candidate.interviewDate)}</span>}
+      <div style={{borderTop:'1px solid #F1F5F9',paddingTop:9,display:'flex',flexDirection:'column',gap:6}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
+          <span style={{color:'var(--text-muted)',fontSize:12}}>📍 {cand.location}</span>
+          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+            {cand.interviewDate&&<span style={{color:'var(--purple)',fontSize:11}}>◆ {fmtDate(cand.interviewDate)}</span>}
+            {cand.linkedin&&<a href={cand.linkedin} target="_blank" className="li-btn" onClick={ev=>ev.stopPropagation()}>in LinkedIn</a>}
+            {cand.cvUrl&&<a href={cand.cvUrl} target="_blank" onClick={ev=>ev.stopPropagation()} style={{display:'inline-flex',alignItems:'center',background:'rgba(22,163,74,.08)',color:'#15803D',border:'1px solid rgba(22,163,74,.2)',padding:'3px 8px',borderRadius:4,fontSize:12,fontWeight:500,textDecoration:'none'}}>↗ CV</a>}
+          </div>
+        </div>
+        {(cand.email||cand.phone)&&(
+          <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+            {cand.email&&<a href={`mailto:${cand.email}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:12,color:'var(--cyan)',textDecoration:'none'}}>✉ {cand.email}</a>}
+            {cand.phone&&<a href={`tel:${cand.phone}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:12,color:'var(--text-muted)',textDecoration:'none'}}>📱 {cand.phone}</a>}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// Kanban mini card
-function KanbanCard({ candidate, onClick }) {
-  return (
-    <div onClick={onClick} style={{
-      background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:6,
-      padding:'8px 10px', marginBottom:6, cursor:'pointer', transition:'border-color 0.15s'
-    }}
-    onMouseEnter={e=>e.currentTarget.style.borderColor='var(--border-strong)'}
-    onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}
-    >
+function KanCard({cand,onClick}){
+  const otw=pb(cand.openToWork);
+  return(
+    <div onClick={onClick} style={{background:'var(--surface)',border:'1px solid #E2E8F0',borderLeft:`3px solid ${otw?'#16A34A':'#E2E8F0'}`,borderRadius:8,padding:'10px 12px',marginBottom:7,cursor:'pointer',transition:'box-shadow .15s',boxShadow:'0 1px 2px rgba(0,0,0,.04)'}}
+      onMouseEnter={ev=>ev.currentTarget.style.boxShadow='0 2px 8px rgba(0,144,176,.1)'}
+      onMouseLeave={ev=>ev.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,.04)'}>
+      {otw&&<div style={{fontSize:10,fontWeight:700,color:'#15803D',marginBottom:5,display:'flex',alignItems:'center',gap:4}}><div className="otw-dot" style={{width:6,height:6}}/>Open to Work</div>}
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-        <div style={{width:24,height:24,borderRadius:4,background:'var(--surface3)',border:'1px solid var(--border-strong)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:600,color:'var(--cyan)',flexShrink:0}}>{candidate.initials||getInitials(candidate.name)}</div>
-        <div style={{fontWeight:500,fontSize:12,lineHeight:1.3}}>{candidate.name}</div>
+        <div style={{width:26,height:26,borderRadius:5,background:'rgba(0,144,176,.08)',border:'1px solid rgba(0,144,176,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,fontWeight:600,color:'var(--cyan)',flexShrink:0}}>{cand.initials||getInits(cand.name)}</div>
+        <div style={{fontWeight:600,fontSize:13}}>{cand.name}</div>
       </div>
-      <div style={{color:'var(--text-muted)',fontSize:10,marginBottom:4,paddingLeft:32,lineHeight:1.4}}>{candidate.title.split('—')[0].trim()}</div>
-      {candidate.interviewDate && <div style={{color:'#A78BFA',fontSize:10,paddingLeft:32}}>◆ {formatDate(candidate.interviewDate)}</div>}
+      <div style={{color:'var(--text-muted)',fontSize:11.5,paddingLeft:34,lineHeight:1.4,marginBottom:4}}>{cand.title.split('—')[0].trim()}</div>
+      {cand.currentCompany&&<div style={{paddingLeft:34,marginBottom:4}}><span style={{fontSize:11,color:'var(--text-muted)',background:'var(--surface2)',border:'1px solid #E2E8F0',borderRadius:4,padding:'1px 6px'}}>🏢 {cand.currentCompany}</span></div>}
+      <div style={{paddingLeft:34,display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+        {cand.interviewDate&&<span style={{color:'var(--purple)',fontSize:11}}>◆ {fmtDate(cand.interviewDate)}</span>}
+        {cand.linkedin&&<a href={cand.linkedin} target="_blank" className="li-btn" onClick={ev=>ev.stopPropagation()} style={{fontSize:10,padding:'2px 6px'}}>in LinkedIn</a>}
+      </div>
     </div>
   );
 }
 
-// Main App
-function App() {
-  const [candidates, setCandidates] = useState(INITIAL_CANDIDATES);
-  const [view, setView] = useState('cards');
-  const [activeTab, setActiveTab] = useState('candidates');
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterLevel, setFilterLevel] = useState('All');
-  const [selected, setSelected] = useState(null);
-  const [showAdd, setShowAdd] = useState(false);
+function SectionHeader({label,count,color,bg,border}){
+  return(
+    <div className="sec-hd">
+      <div style={{display:'flex',alignItems:'center',gap:7,background:bg,border:`1px solid ${border}`,borderRadius:6,padding:'5px 12px'}}>
+        <span style={{width:8,height:8,borderRadius:2,background:color,display:'inline-block',flexShrink:0}}/>
+        <span style={{fontSize:12,fontWeight:700,color,letterSpacing:'.06em',textTransform:'uppercase'}}>{label}</span>
+        <span style={{fontSize:12,fontFamily:'JetBrains Mono',color,opacity:.7}}>({count})</span>
+      </div>
+      <div className="sec-line" style={{background:border}}/>
+    </div>
+  );
+}
 
-  const stats = useMemo(()=>({
-    total: candidates.length,
-    contacted: candidates.filter(c=>c.status!=='Not Contacted').length,
-    interviews: candidates.filter(c=>c.status==='Interview').length,
-    shortlisted: candidates.filter(c=>c.status==='Shortlisted').length,
-    hired: candidates.filter(c=>c.status==='Hired').length,
-    withCV: candidates.filter(c=>c.cvUrl).length,
-  }), [candidates]);
+function App(){
+  const [cands,setCands]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [sync,setSync]=useState('ok');
+  const [toast,setToast]=useState(null);
+  const [view,setView]=useState('cards');
+  const [tab,setTab]=useState('candidates');
+  const [search,setSearch]=useState('');
+  const [fStatus,setFStatus]=useState('All');
+  const [fOTW,setFOTW]=useState(false);
+  const [selected,setSelected]=useState(null);
+  const [showAdd,setShowAdd]=useState(false);
 
-  const filtered = useMemo(()=>candidates.filter(c=>{
-    const q = search.toLowerCase();
-    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)
-      || c.certs.some(cert=>cert.toLowerCase().includes(q));
-    const matchStatus = filterStatus==='All' || c.status===filterStatus;
-    const matchLevel = filterLevel==='All' || c.level===filterLevel;
-    return matchSearch && matchStatus && matchLevel;
-  }), [candidates, search, filterStatus, filterLevel]);
+  // Prospects with localStorage persistence
+  const [actionedIds,setActionedIds]=useState(()=>{
+    try{const s=localStorage.getItem('taqa_actioned_prospects');return s?new Set(JSON.parse(s)):new Set();}catch{return new Set();}
+  });
+  const [prospects,setProspects]=useState(()=>
+    SEED_PROSPECTS.filter(p=>{try{const s=localStorage.getItem('taqa_actioned_prospects');const ids=s?JSON.parse(s):[];return!ids.includes(p.id);}catch{return true;}})
+  );
 
-  function updateCandidate(updated) {
-    setCandidates(prev=>prev.map(c=>c.id===updated.id?updated:c));
+  function actionProspect(id){
+    const next=new Set(actionedIds);next.add(id);setActionedIds(next);
+    try{localStorage.setItem('taqa_actioned_prospects',JSON.stringify([...next]));}catch{}
+    setProspects(prev=>prev.filter(x=>x.id!==id));
+  }
+  function dismissProspect(id){actionProspect(id);}
+  function addProspectToCRM(p){
+    actionProspect(p.id);
+    handleAdd({id:Date.now(),initials:getInits(p.name),name:p.name,title:p.title,location:p.location,currentCompany:p.currentCompany||'',status:'Not Contacted',openToWork:false,taqaCertified:p.taqaCertified,email:'',phone:'',cvUrl:'',notes:[{id:Date.now(),text:p.notes,ts:new Date().toISOString()}],linkedin:p.linkedin,source:'Prospect Search',agency:'',interviewDate:''});
   }
 
-  function addCandidate(candidate) {
-    setCandidates(prev=>[...prev, candidate]);
+  function clearFilters(){setFStatus('All');setFOTW(false);setSearch('');}
+  function showToast(msg,type='success'){setToast({msg,type,id:Date.now()})}
+
+  useEffect(()=>{
+    setLoading(true);setSync('busy');
+    apiGet().then(async res=>{
+      if(res.error)throw new Error(res.error);
+      let list=res.candidates||[];
+      if(list.length===0){for(const c of SEED)await apiSave(c);list=SEED;}
+      list=list.map(c=>({...c,openToWork:pb(c.openToWork),taqaCertified:normTC(c.taqaCertified),email:c.email||'',phone:c.phone||'',currentCompany:c.currentCompany||'',notes:Array.isArray(c.notes)?c.notes:[]}));
+      setCands(list);setSync('ok');
+    }).catch(()=>{
+      setCands(SEED.map(c=>({...c,taqaCertified:normTC(c.taqaCertified),currentCompany:c.currentCompany||''})));setSync('error');
+      showToast('Could not reach Google Sheets — showing local data','error');
+    }).finally(()=>setLoading(false));
+  },[]);
+
+  async function handleUpdate(u){
+    setCands(prev=>prev.map(c=>String(c.id)===String(u.id)?u:c));
+    setSelected(null);setSaving(true);setSync('busy');
+    try{await apiSave(u);setSync('ok');showToast('Saved ✓')}
+    catch{setSync('error');showToast('Save failed','error')}
+    finally{setSaving(false)}
   }
 
-  const kanbanGroups = useMemo(()=>{
-    const groups = {};
-    STATUSES.forEach(s=>{ groups[s]=filtered.filter(c=>c.status===s); });
-    return groups;
-  }, [filtered]);
+  async function handleAdd(c){
+    setCands(prev=>[...prev,c]);
+    setShowAdd(false);setSaving(true);setSync('busy');
+    try{await apiSave(c);setSync('ok');showToast('Candidate added ✓')}
+    catch{setSync('error');showToast('Save failed','error')}
+    finally{setSaving(false)}
+  }
 
-  return (
+  async function handleDel(id){
+    if(!confirm('Delete this candidate?'))return;
+    setCands(prev=>prev.filter(c=>String(c.id)!==String(id)));
+    setSelected(null);setSync('busy');
+    try{await apiDel(id);setSync('ok');showToast('Deleted')}
+    catch{setSync('error');showToast('Delete failed on server','error')}
+  }
+
+  const stats=useMemo(()=>({
+    total:cands.length,
+    interviewed:cands.filter(c=>c.status==='Interview').length,
+    rejected:cands.filter(c=>c.status==='Rejected').length,
+    otw:cands.filter(c=>pb(c.openToWork)).length,
+  }),[cands]);
+
+  const filtered=useMemo(()=>{
+    return cands.filter(c=>{
+      const q=search.toLowerCase();
+      const ms=!q||c.name.toLowerCase().includes(q)||c.title.toLowerCase().includes(q)||(c.currentCompany||'').toLowerCase().includes(q);
+      return ms&&(fStatus==='All'||c.status===fStatus)&&(!fOTW||pb(c.openToWork));
+    });
+  },[cands,search,fStatus,fOTW]);
+
+  const otwCands=useMemo(()=>filtered.filter(c=>pb(c.openToWork)),[filtered]);
+  const restCands=useMemo(()=>filtered.filter(c=>!pb(c.openToWork)),[filtered]);
+  const kanban=useMemo(()=>{const g={};STATUSES.forEach(s=>{g[s]=filtered.filter(c=>c.status===s&&!pb(c.openToWork));g[s+'_otw']=filtered.filter(c=>c.status===s&&pb(c.openToWork))});return g},[filtered]);
+
+  const hasFilters=fStatus!=='All'||fOTW||!!search;
+
+  const statCards=[
+    {key:'total',label:'Active',val:stats.total,color:'var(--text)',isActive:!hasFilters,onClick:clearFilters},
+    {key:'int',label:'Interviewed',val:stats.interviewed,color:'var(--purple)',isActive:fStatus==='Interview',onClick:()=>setFStatus(p=>p==='Interview'?'All':'Interview')},
+    {key:'rej',label:'Rejected',val:stats.rejected,color:'var(--red)',isActive:fStatus==='Rejected',onClick:()=>setFStatus(p=>p==='Rejected'?'All':'Rejected')},
+    {key:'otw',label:'Open to Work',val:stats.otw,color:'#16A34A',isActive:fOTW,onClick:()=>setFOTW(p=>!p)},
+  ];
+
+  return(
     <div style={{position:'relative',zIndex:1,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
-      {/* Header */}
-      <header style={{
-        borderBottom:'1px solid var(--border)',
-        background:'rgba(7,7,12,0.9)',
-        backdropFilter:'blur(10px)',
-        position:'sticky',top:0,zIndex:100,
-      }}>
+      <header style={{borderBottom:'1px solid #E2E8F0',background:'rgba(255,255,255,.93)',backdropFilter:'blur(10px)',position:'sticky',top:0,zIndex:100,boxShadow:'0 1px 4px rgba(0,0,0,.06)'}}>
         <div style={{maxWidth:1400,margin:'0 auto',padding:'0 20px'}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',height:56}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',height:58}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{
-                width:32,height:32,borderRadius:6,
-                background:'rgba(0,180,216,0.12)',border:'1px solid rgba(0,180,216,0.3)',
-                display:'flex',alignItems:'center',justifyContent:'center',
-              }}>
-                <span style={{color:'var(--cyan)',fontFamily:'JetBrains Mono',fontSize:11,fontWeight:500}}>RTU</span>
+              <div style={{width:36,height:36,borderRadius:8,background:'rgba(0,144,176,.1)',border:'1px solid rgba(0,144,176,.25)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span style={{color:'var(--cyan)',fontFamily:'JetBrains Mono',fontSize:11,fontWeight:600}}>RTU</span>
               </div>
               <div>
-                <div style={{fontFamily:'DM Serif Display',fontSize:15,letterSpacing:'-0.01em'}}>
-                  TAQA <span style={{color:'var(--cyan)'}}>Talent</span> CRM
-                </div>
-                <div style={{fontSize:10,color:'var(--text-dim)',letterSpacing:'0.06em',textTransform:'uppercase'}}>RTU · SCADA · Substation Automation</div>
+                <div style={{fontFamily:'DM Serif Display',fontSize:17,color:'var(--text)'}}>TAQA <span style={{color:'var(--cyan)'}}>Talent</span> CRM</div>
+                <div style={{fontSize:10,color:'var(--text-dim)',letterSpacing:'.06em',textTransform:'uppercase'}}>RTU · SCADA · Substation Automation</div>
               </div>
             </div>
-
             <div style={{display:'flex',gap:4}}>
-              {['candidates','agencies'].map(t=>(
-                <button key={t} className={`nav-pill ${activeTab===t?'active':''}`} onClick={()=>setActiveTab(t)}>
+              {['candidates','prospects','partners'].map(t=>(
+                <button key={t} className={`nav-pill ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
                   {t.charAt(0).toUpperCase()+t.slice(1)}
-                  {t==='candidates' && <span style={{marginLeft:4,background:'var(--surface3)',color:'var(--text-muted)',borderRadius:3,padding:'0 4px',fontSize:10}}>{candidates.length}</span>}
+                  {t==='candidates'&&<span style={{marginLeft:5,background:'#F1F5F9',color:'var(--text-muted)',borderRadius:4,padding:'0 5px',fontSize:11}}>{cands.length}</span>}
                 </button>
               ))}
             </div>
-
-            <button className="btn btn-cyan" style={{fontSize:12}} onClick={()=>setShowAdd(true)}>
-              + Add Candidate
-            </button>
+            <div style={{display:'flex',alignItems:'center',gap:14}}>
+              <div style={{display:'flex',alignItems:'center',fontSize:12,color:'var(--text-muted)'}}>
+                <span className={`sync-dot ${sync==='ok'?'s-ok':sync==='busy'?'s-busy':'s-err'}`}/>
+                {sync==='ok'?'Synced':sync==='busy'?'Saving…':'Connection error'}
+              </div>
+              <button className="btn btn-cyan" onClick={()=>setShowAdd(true)}>+ Add Candidate</button>
+            </div>
           </div>
         </div>
       </header>
 
       <main style={{maxWidth:1400,margin:'0 auto',padding:'20px',width:'100%',flex:1}}>
 
-        {activeTab==='candidates' && (<>
-          {/* Stats bar */}
-          <div style={{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap'}}>
-            {[
-              {label:'Total',val:stats.total,color:'var(--text)'},
-              {label:'In Pipeline',val:stats.contacted,color:'var(--cyan)'},
-              {label:'Interviews',val:stats.interviews,color:'#A78BFA'},
-              {label:'Shortlisted',val:stats.shortlisted,color:'var(--amber)'},
-              {label:'Hired',val:stats.hired,color:'var(--green)'},
-              {label:'CV on File',val:stats.withCV,color:'var(--text-muted)'},
-            ].map(s=>(
-              <div key={s.label} className="stat-card" style={{minWidth:100}}>
-                <div style={{fontSize:10,color:'var(--text-dim)',letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:4}}>{s.label}</div>
-                <div style={{fontSize:24,fontWeight:600,fontFamily:'JetBrains Mono',color:s.color}}>{s.val}</div>
-              </div>
-            ))}
-          </div>
+        {loading&&<div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'80px 0',gap:12,color:'var(--text-muted)',fontSize:14}}><div className="spinner spinner-d"/>Loading from Google Sheets…</div>}
 
-          {/* Toolbar */}
-          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-            <input placeholder="Search name, title, certifications..."
-              value={search} onChange={e=>setSearch(e.target.value)}
-              style={{maxWidth:300,flex:'1 1 200px'}}/>
-
-            <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{width:'auto',flex:'0 0 auto'}}>
-              <option value="All">All Statuses</option>
-              {STATUSES.map(s=><option key={s}>{s}</option>)}
-            </select>
-
-            <select value={filterLevel} onChange={e=>setFilterLevel(e.target.value)} style={{width:'auto',flex:'0 0 auto'}}>
-              <option value="All">All Levels</option>
-              <option>Junior</option><option>Mid-Senior</option><option>Senior</option><option>Lead</option>
-            </select>
-
-            <div style={{display:'flex',gap:4,marginLeft:'auto'}}>
-              <button className={`btn btn-ghost btn-sm ${view==='cards'?'btn-active':''}`}
-                onClick={()=>setView('cards')} title="Card view">⊞ Cards</button>
-              <button className={`btn btn-ghost btn-sm ${view==='kanban'?'btn-active':''}`}
-                onClick={()=>setView('kanban')} title="Kanban view">⊟ Pipeline</button>
+        {!loading&&tab==='candidates'&&(
+          <div>
+            {/* Stat cards */}
+            <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+              {statCards.map(s=>(
+                <div key={s.key} className={`stat-card${s.isActive?' active':''}`} onClick={s.onClick}>
+                  <div style={{fontSize:11,color:'var(--text-muted)',letterSpacing:'.05em',textTransform:'uppercase',marginBottom:5}}>{s.label}</div>
+                  <div style={{fontSize:26,fontWeight:600,fontFamily:'JetBrains Mono',color:s.isActive?'var(--cyan)':s.color}}>{s.val}</div>
+                  {s.isActive&&<div className="act-bar"/>}
+                </div>
+              ))}
             </div>
 
-            {(search||filterStatus!=='All'||filterLevel!=='All') && (
-              <div style={{fontSize:12,color:'var(--text-muted)'}}>
-                Showing {filtered.length} of {candidates.length}
+            {/* Active filter pills */}
+            {hasFilters&&(
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+                <span style={{fontSize:12,color:'var(--text-muted)'}}>Filtered by:</span>
+                {fStatus!=='All'&&<div className="f-pill">{fStatus} <button onClick={()=>setFStatus('All')}>×</button></div>}
+                {fOTW&&<div className="f-pill grn">Open to Work <button onClick={()=>setFOTW(false)}>×</button></div>}
+                {search&&<div className="f-pill">"{search}" <button onClick={()=>setSearch('')}>×</button></div>}
+                <button onClick={clearFilters} style={{fontSize:12,color:'var(--text-dim)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',padding:0}}>Clear all</button>
+                <span style={{fontSize:12,color:'var(--text-muted)',marginLeft:4}}>— {filtered.length} of {cands.length}</span>
+              </div>
+            )}
+
+            {/* Toolbar */}
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+              <input placeholder="Search name, title or company…" value={search} onChange={ev=>setSearch(ev.target.value)} style={{maxWidth:300,flex:'1 1 200px'}}/>
+              <select value={fStatus} onChange={ev=>setFStatus(ev.target.value)} style={{width:'auto'}}>
+                <option value="All">All Statuses</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
+              </select>
+              <div style={{display:'flex',gap:4,marginLeft:'auto'}}>
+                <button className={`btn btn-ghost btn-sm ${view==='cards'?'btn-act':''}`} onClick={()=>setView('cards')}>⊞ Cards</button>
+                <button className={`btn btn-ghost btn-sm ${view==='kanban'?'btn-act':''}`} onClick={()=>setView('kanban')}>⊟ Pipeline</button>
+              </div>
+            </div>
+
+            {/* Cards view — OTW section first, then everyone else */}
+            {view==='cards'&&(
+              <div>
+                {otwCands.length>0&&(
+                  <div style={{marginBottom:28}}>
+                    <SectionHeader label="Open to Work" count={otwCands.length} color="#16A34A" bg="rgba(22,163,74,.06)" border="rgba(22,163,74,.2)"/>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:12}}>
+                      {otwCands.map(c=><CandCard key={c.id} cand={c} onClick={()=>setSelected(c)}/>)}
+                    </div>
+                  </div>
+                )}
+                {restCands.length>0&&(
+                  <div style={{marginBottom:28}}>
+                    <SectionHeader label="All Candidates" count={restCands.length} color="var(--text-muted)" bg="var(--surface2)" border="#E2E8F0"/>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:12}}>
+                      {restCands.map(c=><CandCard key={c.id} cand={c} onClick={()=>setSelected(c)}/>)}
+                    </div>
+                  </div>
+                )}
+                {filtered.length===0&&<div style={{textAlign:'center',padding:'60px',color:'var(--text-dim)'}}>No candidates match your filters.</div>}
+              </div>
+            )}
+
+            {/* Kanban view */}
+            {view==='kanban'&&(
+              <div style={{display:'flex',gap:10,overflowX:'auto',paddingBottom:12,alignItems:'flex-start'}}>
+                {STATUSES.map(s=>(
+                  <div key={s} className="kan-col">
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10,paddingBottom:8,borderBottom:'1px solid #E2E8F0'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:7}}>
+                        <span style={{width:8,height:8,borderRadius:2,background:SDOT[s],display:'inline-block'}}/>
+                        <span style={{fontSize:12,fontWeight:600,letterSpacing:'.04em',color:'var(--text-muted)'}}>{s.toUpperCase()}</span>
+                      </div>
+                      <span style={{fontSize:12,fontFamily:'JetBrains Mono',background:'#F1F5F9',color:'var(--text-muted)',borderRadius:4,padding:'0 6px'}}>{(kanban[s]?.length||0)+(kanban[s+'_otw']?.length||0)}</span>
+                    </div>
+                    {kanban[s+'_otw']?.map(c=><KanCard key={c.id} cand={c} onClick={()=>setSelected(c)}/>)}
+                    {kanban[s]?.map(c=><KanCard key={c.id} cand={c} onClick={()=>setSelected(c)}/>)}
+                    {(kanban[s]?.length||0)+(kanban[s+'_otw']?.length||0)===0&&<div style={{color:'var(--text-dim)',fontSize:12,textAlign:'center',padding:'16px 0'}}>Empty</div>}
+                  </div>
+                ))}
               </div>
             )}
           </div>
+        )}
 
-          {/* Cards view */}
-          {view==='cards' && (
-            <div style={{
-              display:'grid',
-              gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',
-              gap:12,
-            }}>
-              {filtered.map(c=>(
-                <CandidateCard key={c.id} candidate={c} onClick={()=>setSelected(c)}/>
-              ))}
-              {filtered.length===0 && (
-                <div style={{gridColumn:'1/-1',textAlign:'center',padding:'60px 20px',color:'var(--text-dim)'}}>
-                  No candidates match your filters.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Kanban view */}
-          {view==='kanban' && (
-            <div style={{display:'flex',gap:10,overflowX:'auto',paddingBottom:12,alignItems:'flex-start'}}>
-              {STATUSES.map(status=>(
-                <div key={status} className="kanban-col">
-                  <div className="kanban-col-header">
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <span style={{width:8,height:8,borderRadius:2,background:STATUS_DOT[status],display:'inline-block'}}/>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'0.04em'}}>{status.toUpperCase()}</span>
-                    </div>
-                    <span style={{
-                      fontSize:11, fontFamily:'JetBrains Mono',
-                      background:'var(--surface3)',color:'var(--text-muted)',
-                      borderRadius:3,padding:'0 5px'
-                    }}>{kanbanGroups[status]?.length||0}</span>
-                  </div>
-                  {kanbanGroups[status]?.length===0 && (
-                    <div style={{color:'var(--text-dim)',fontSize:11,textAlign:'center',padding:'16px 0'}}>Empty</div>
-                  )}
-                  {kanbanGroups[status]?.map(c=>(
-                    <KanbanCard key={c.id} candidate={c} onClick={()=>setSelected(c)}/>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-        </>)}
-
-        {activeTab==='agencies' && (
+        {!loading&&tab==='prospects'&&(
           <div>
-            <div style={{marginBottom:16}}>
-              <div style={{fontFamily:'DM Serif Display',fontSize:18,marginBottom:4}}>Recruitment Agencies</div>
-              <div style={{color:'var(--text-muted)',fontSize:13}}>Specialist firms with TAQA-approved engineering rosters in the GCC</div>
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
+              <div>
+                <div style={{fontFamily:'DM Serif Display',fontSize:20,marginBottom:4}}>Prospects</div>
+                <div style={{color:'var(--text-muted)',fontSize:14}}>Engineers with TAQA/ADDC competency, GCC-based. Add to CRM or dismiss if not suitable.</div>
+              </div>
+              <div style={{background:'rgba(0,144,176,.06)',border:'1px solid rgba(0,144,176,.2)',borderRadius:8,padding:'10px 14px',fontSize:12,color:'var(--text-muted)',maxWidth:280}}>
+                <span style={{fontWeight:600,color:'var(--cyan)'}}>↻ Want fresh results?</span><br/>
+                Ask me "refresh my prospects" in this chat and I'll run new searches and send you an updated file.
+                <div style={{marginTop:7,borderTop:'1px solid rgba(0,144,176,.15)',paddingTop:7}}>
+                  <button onClick={()=>{try{localStorage.removeItem('taqa_actioned_prospects')}catch{} setProspects(SEED_PROSPECTS);setActionedIds(new Set());}}
+                    style={{background:'none',border:'none',cursor:'pointer',color:'var(--text-dim)',fontSize:11,textDecoration:'underline',padding:0}}>
+                    Restore dismissed prospects
+                  </button>
+                </div>
+              </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:12}}>
-              {AGENCIES.map(a=>(
-                <div key={a.id} className="agency-card fade-in">
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-                    <div style={{fontWeight:600,fontSize:14}}>{a.name}</div>
-                    <a href={a.url} target="_blank" style={{textDecoration:'none'}}>
-                      <span className="btn btn-ghost btn-sm">↗ Site</span>
-                    </a>
+            <div style={{background:'var(--surface)',border:'1px solid #E2E8F0',borderRadius:10,padding:'14px 18px',marginBottom:24,boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
+              <div style={{fontWeight:600,fontSize:13,marginBottom:10}}>Run a LinkedIn search</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                {LI_SEARCHES.map(s=>(
+                  <a key={s.label} href={s.url} target="_blank" style={{textDecoration:'none'}}>
+                    <span style={{display:'inline-flex',alignItems:'center',gap:5,background:'var(--surface2)',border:'1px solid #E2E8F0',borderRadius:6,padding:'6px 12px',fontSize:12,fontWeight:500,color:'var(--text)',cursor:'pointer'}}>
+                      🔍 {s.label} ↗
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))',gap:12}}>
+              {prospects.length===0&&<div style={{gridColumn:'1/-1',textAlign:'center',padding:'60px 20px',color:'var(--text-dim)'}}>All prospects actioned. Ask me to refresh with new searches.</div>}
+              {prospects.map(p=>(
+                <div key={p.id} style={{background:'var(--surface)',border:'1px solid #E2E8F0',borderRadius:10,padding:'16px',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:10,marginBottom:10}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600,fontSize:14,marginBottom:4}}>{p.name}</div>
+                      <div style={{color:'var(--text-muted)',fontSize:12,lineHeight:1.4,marginBottom:5}}>{p.title}</div>
+                      <div style={{fontSize:11,color:'var(--text-dim)'}}>📍 {p.location}</div>
+                    </div>
+                    {p.linkedin&&<a href={p.linkedin} target="_blank" style={{textDecoration:'none',flexShrink:0}}><span className="li-btn">in LinkedIn</span></a>}
                   </div>
-                  <div style={{display:'flex',gap:6,marginBottom:8,flexWrap:'wrap'}}>
-                    <span className="tag">{a.speciality}</span>
-                    <span className="tag">📍 {a.region}</span>
-                  </div>
-                  <div style={{color:'var(--text-muted)',fontSize:12,marginBottom:8}}>{a.notes}</div>
-                  <div className="divider"/>
-                  <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    <span style={{color:'var(--text-dim)',fontSize:11}}>Contact:</span>
-                    <a href={`mailto:${a.contact}`} style={{color:'var(--cyan)',fontSize:12,textDecoration:'none'}}>{a.contact}</a>
+                  {p.currentCompany&&<div style={{marginBottom:8}}><span className="company-box">🏢 {p.currentCompany}</span></div>}
+                  <div style={{background:'var(--surface2)',border:'1px solid #F1F5F9',borderRadius:6,padding:'8px 10px',fontSize:12,color:'var(--text-muted)',lineHeight:1.5,marginBottom:10}}>{p.notes}</div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+                    <TCBadge v={p.taqaCertified}/>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>dismissProspect(p.id)}>✕ Dismiss</button>
+                      <button className="btn btn-cyan btn-sm" onClick={()=>addProspectToCRM(p)}>+ Add to CRM</button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
 
-            <div style={{marginTop:24,marginBottom:12}}>
-              <div style={{fontFamily:'DM Serif Display',fontSize:16,marginBottom:4}}>Where to Find More Engineers</div>
+        {!loading&&tab==='partners'&&(
+          <div>
+            <div style={{marginBottom:18}}>
+              <div style={{fontFamily:'DM Serif Display',fontSize:20,marginBottom:4}}>Sourcing Partners</div>
+              <div style={{color:'var(--text-muted)',fontSize:14}}>Recruitment agencies and technical contractors relevant to this search</div>
             </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))',gap:16,marginBottom:32}}>
+              {PARTNERS.map(p=>(
+                <div key={p.id} className="agency-card fade-in">
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12,gap:12}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:16,marginBottom:6}}>{p.name}</div>
+                      <span style={{display:'inline-block',background:p.tb,border:`1px solid ${p.tbd}`,color:p.tc,fontSize:11,fontWeight:600,padding:'2px 9px',borderRadius:4}}>{p.type}</span>
+                    </div>
+                    <a href={p.url} target="_blank" style={{textDecoration:'none',flexShrink:0}}><span className="btn btn-ghost btn-sm">↗ Visit</span></a>
+                  </div>
+                  <div style={{color:'var(--text-muted)',fontSize:13,lineHeight:1.6,marginBottom:12}}>{p.desc}</div>
+                  <div className="divider"/>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+                    <span style={{fontSize:12,color:'var(--text-dim)'}}>📍 {p.region}</span>
+                    {p.contact?<a href={`mailto:${p.contact}`} style={{color:'var(--cyan)',fontSize:13,textDecoration:'none',fontWeight:500}}>{p.contact}</a>:<span style={{fontSize:12,color:'var(--text-dim)'}}>Contact via website</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontFamily:'DM Serif Display',fontSize:18,marginBottom:12}}>Where to Find More Engineers</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:10}}>
               {[
-                {src:'LinkedIn Recruiter',tip:'Search: "TAQA" AND "RTU" AND "SCADA" in UAE. Filter: "Open to Work" or "Open to Opportunities". Keywords: ADDC competency, AADC, DMS, IEC 61968.'},
-                {src:'ADIPEC Network',tip:'Annual Abu Dhabi energy exhibition. TAQA, ADNOC, EtihadWE all present. Target engineers from Autochim, Milele, Siemens Energy, Schneider booths.'},
-                {src:'Autochim Systems',tip:'Primary subcontractor for TAQA RTU/DMS projects. Engineers leaving Autochim often carry TAQA competency — track their alumni on LinkedIn.'},
-                {src:'GCC Job Boards',tip:'Bayt.com, GulfTalent, Naukrigulf — filter for "SCADA Engineer Abu Dhabi" with salary range AED 15,000–25,000/month to find active candidates.'},
+                {src:'LinkedIn Recruiter',tip:'Search: "TAQA" AND "RTU" AND "SCADA" in UAE. Filter: "Open to Work". Keywords: ADDC competency, DMS, IEC 61968.'},
+                {src:'ADIPEC Network',tip:'Annual Abu Dhabi energy exhibition. Target engineers from Autochim, Siemens Energy, Schneider booths.'},
+                {src:'Autochim Systems Alumni',tip:'Former Autochim engineers frequently move into client-side roles. Search LinkedIn for "Autochim Systems" in past experience.'},
+                {src:'GCC Job Boards',tip:'Bayt.com, GulfTalent, Naukrigulf — filter "SCADA Engineer Abu Dhabi", AED 15,000–25,000/month.'},
               ].map(r=>(
-                <div key={r.src} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,padding:'12px 14px'}}>
-                  <div style={{fontWeight:600,fontSize:12,color:'var(--cyan)',marginBottom:6}}>→ {r.src}</div>
-                  <div style={{color:'var(--text-muted)',fontSize:12,lineHeight:1.5}}>{r.tip}</div>
+                <div key={r.src} style={{background:'var(--surface)',border:'1px solid #E2E8F0',borderRadius:8,padding:'14px 16px',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
+                  <div style={{fontWeight:600,fontSize:13,color:'var(--cyan)',marginBottom:6}}>→ {r.src}</div>
+                  <div style={{color:'var(--text-muted)',fontSize:13,lineHeight:1.5}}>{r.tip}</div>
                 </div>
               ))}
             </div>
@@ -799,38 +748,20 @@ function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer style={{
-        borderTop:'1px solid var(--border)',
-        padding:'10px 20px',
-        display:'flex',alignItems:'center',justifyContent:'space-between',
-        fontSize:10,color:'var(--text-dim)',letterSpacing:'0.04em',
-        background:'rgba(7,7,12,0.8)',
-      }}>
+      <footer style={{borderTop:'1px solid #E2E8F0',padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',fontSize:11,color:'var(--text-dim)',background:'rgba(255,255,255,.8)'}}>
         <span>TAQA RTU TALENT CRM · ABU DHABI · {new Date().getFullYear()}</span>
-        <span>{candidates.length} VERIFIED CANDIDATES · ALL VERIFIED AS NOT CURRENTLY EMPLOYED BY TAQA</span>
+        <span>{cands.length} CANDIDATES · BACKED BY GOOGLE SHEETS</span>
         <span>TENDER D-114063 · RTU/DMS INTEGRATION</span>
       </footer>
 
-      {/* Modals */}
-      {selected && (
-        <CandidateModal
-          candidate={selected}
-          onClose={()=>setSelected(null)}
-          onUpdate={(updated)=>{updateCandidate(updated);setSelected(null);}}
-        />
-      )}
-      {showAdd && (
-        <AddCandidateModal
-          onClose={()=>setShowAdd(false)}
-          onAdd={(c)=>{addCandidate(c);setShowAdd(false);}}
-        />
-      )}
+      {selected&&<CandModal cand={selected} saving={saving} onClose={()=>setSelected(null)} onUpdate={handleUpdate} onDelete={handleDel}/>}
+      {showAdd&&<AddModal saving={saving} onClose={()=>setShowAdd(false)} onAdd={handleAdd}/>}
+      {toast&&<Toast key={toast.id} msg={toast.msg} type={toast.type} onDone={()=>setToast(null)}/>}
     </div>
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById('root'));
+ReactDOM.render(<App/>,document.getElementById('root'));
 </script>
 </body>
 </html>
