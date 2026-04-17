@@ -353,41 +353,55 @@ function AddModal({onClose,onAdd,saving}){
 
 function CandCard({cand,onClick}){
   const otw=pb(cand.openToWork);
+  const noteCount=(cand.notes||[]).length;
   return(
     <div className={`cand-card${otw?' otw':''}`} onClick={onClick}>
       {otw&&<div className="otw-banner" style={{marginBottom:10}}><div className="otw-dot"/>Open to Work — actively looking</div>}
-      <div style={{display:'flex',alignItems:'flex-start',gap:12,marginBottom:10}}>
-        <div className="avatar">{cand.initials||getInits(cand.name)}</div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:600,fontSize:15,marginBottom:3}}>{cand.name}</div>
-          <div style={{color:'var(--text-muted)',fontSize:12.5,lineHeight:1.4}}>{cand.title}</div>
-        </div>
+
+      {/* Name + company */}
+      <div style={{marginBottom:6}}>
+        <div style={{fontWeight:700,fontSize:15,marginBottom:2}}>{cand.name}</div>
+        {cand.currentCompany&&<span className="company-box" style={{marginBottom:4,display:'inline-flex'}}>🏢 {cand.currentCompany}</span>}
       </div>
-      {cand.currentCompany&&(
-        <div style={{marginBottom:8}}>
-          <span className="company-box">🏢 {cand.currentCompany}</span>
-        </div>
-      )}
+
+      {/* Headline */}
+      <div style={{color:'var(--text-muted)',fontSize:12.5,lineHeight:1.4,marginBottom:5}}>{cand.title}</div>
+
+      {/* Location */}
+      {cand.location&&<div style={{fontSize:12,color:'var(--text-dim)',marginBottom:10}}>📍 {cand.location}</div>}
+
+      <div className="divider" style={{margin:'0 0 10px 0'}}/>
+
+      {/* Button row: TAQA cert + LinkedIn + CV */}
       <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:10}}>
-        <span className={`badge ${SBADGE[cand.status]||'badge-nc'}`}>{cand.status}</span>
         <TCBadge v={cand.taqaCertified}/>
-        {(cand.notes||[]).length>0&&<span style={{color:'var(--text-dim)',fontSize:11}}>{cand.notes.length} note{cand.notes.length>1?'s':''}</span>}
+        {cand.linkedin
+          ?<a href={cand.linkedin} target="_blank" className="li-btn" onClick={ev=>ev.stopPropagation()}>in LinkedIn</a>
+          :<span style={{display:'inline-flex',alignItems:'center',padding:'3px 9px',borderRadius:4,fontSize:11,fontWeight:600,background:'#F1F5F9',border:'1px solid #E2E8F0',color:'#CBD5E1',letterSpacing:'.03em'}}>in LinkedIn</span>
+        }
+        {cand.cvUrl
+          ?<a href={cand.cvUrl} target="_blank" onClick={ev=>ev.stopPropagation()} style={{display:'inline-flex',alignItems:'center',background:'rgba(22,163,74,.08)',color:'#15803D',border:'1px solid rgba(22,163,74,.25)',padding:'3px 9px',borderRadius:4,fontSize:11,fontWeight:700,textDecoration:'none',letterSpacing:'.03em'}}>↗ CV</a>
+          :<span style={{display:'inline-flex',alignItems:'center',padding:'3px 9px',borderRadius:4,fontSize:11,fontWeight:600,background:'#F1F5F9',border:'1px solid #E2E8F0',color:'#CBD5E1',letterSpacing:'.03em'}}>↗ CV</span>
+        }
       </div>
-      <div style={{borderTop:'1px solid #F1F5F9',paddingTop:9,display:'flex',flexDirection:'column',gap:6}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
-          <span style={{color:'var(--text-muted)',fontSize:12}}>📍 {cand.location}</span>
-          <div style={{display:'flex',gap:6,alignItems:'center'}}>
-            {cand.interviewDate&&<span style={{color:'var(--purple)',fontSize:11}}>◆ {fmtDate(cand.interviewDate)}</span>}
-            {cand.linkedin&&<a href={cand.linkedin} target="_blank" className="li-btn" onClick={ev=>ev.stopPropagation()}>in LinkedIn</a>}
-            {cand.cvUrl&&<a href={cand.cvUrl} target="_blank" onClick={ev=>ev.stopPropagation()} style={{display:'inline-flex',alignItems:'center',background:'rgba(22,163,74,.08)',color:'#15803D',border:'1px solid rgba(22,163,74,.2)',padding:'3px 8px',borderRadius:4,fontSize:12,fontWeight:500,textDecoration:'none'}}>↗ CV</a>}
-          </div>
+
+      <div className="divider" style={{margin:'0 0 10px 0'}}/>
+
+      {/* Status + notes + email/phone */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,flexWrap:'wrap'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+          <span className={`badge ${SBADGE[cand.status]||'badge-nc'}`}>{cand.status}</span>
+          {cand.interviewDate&&<span style={{color:'var(--purple)',fontSize:11}}>◆ {fmtDate(cand.interviewDate)}</span>}
+          {noteCount>0&&(
+            <span style={{display:'inline-flex',alignItems:'center',gap:4,fontSize:11,color:'var(--text-dim)',background:'var(--surface2)',border:'1px solid #E2E8F0',borderRadius:4,padding:'2px 7px',cursor:'pointer'}}>
+              💬 {noteCount} note{noteCount>1?'s':''}
+            </span>
+          )}
         </div>
-        {(cand.email||cand.phone)&&(
-          <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-            {cand.email&&<a href={`mailto:${cand.email}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:12,color:'var(--cyan)',textDecoration:'none'}}>✉ {cand.email}</a>}
-            {cand.phone&&<a href={`tel:${cand.phone}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:12,color:'var(--text-muted)',textDecoration:'none'}}>📱 {cand.phone}</a>}
-          </div>
-        )}
+        <div style={{display:'flex',gap:10}}>
+          {cand.email&&<a href={`mailto:${cand.email}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:11,color:'var(--cyan)',textDecoration:'none'}}>✉</a>}
+          {cand.phone&&<a href={`tel:${cand.phone}`} onClick={ev=>ev.stopPropagation()} style={{fontSize:11,color:'var(--text-muted)',textDecoration:'none'}}>📱</a>}
+        </div>
       </div>
     </div>
   );
@@ -465,17 +479,35 @@ function App(){
   function showToast(msg,type='success'){setToast({msg,type,id:Date.now()})}
 
   useEffect(()=>{
-    setLoading(true);setSync('busy');
-    apiGet().then(async res=>{
-      if(res.error)throw new Error(res.error);
-      let list=res.candidates||[];
-      if(list.length===0){for(const c of SEED)await apiSave(c);list=SEED;}
-      list=list.map(c=>({...c,openToWork:pb(c.openToWork),taqaCertified:normTC(c.taqaCertified),email:c.email||'',phone:c.phone||'',currentCompany:c.currentCompany||'',notes:Array.isArray(c.notes)?c.notes:[]}));
-      setCands(list);setSync('ok');
-    }).catch(()=>{
-      setCands(SEED.map(c=>({...c,taqaCertified:normTC(c.taqaCertified),currentCompany:c.currentCompany||''})));setSync('error');
-      showToast('Could not reach Google Sheets — showing local data','error');
-    }).finally(()=>setLoading(false));
+    // Show seed data immediately so the UI is never blank
+    setCands(SEED.map(c=>({...c,taqaCertified:normTC(c.taqaCertified),currentCompany:c.currentCompany||'',email:c.email||'',phone:c.phone||'',notes:Array.isArray(c.notes)?c.notes:[]})));
+    setLoading(false);
+    // Then fetch from Sheets in background — update silently if successful
+    setSync('busy');
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    fetch(`${SHEET_URL}?action=getCandidates`,{signal:controller.signal})
+      .then(r=>r.json())
+      .then(async res=>{
+        clearTimeout(timeout);
+        if(res.error)throw new Error(res.error);
+        let list=res.candidates||[];
+        if(list.length===0){
+          // Batch seed — single POST with all candidates
+          await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({action:'seedCandidates',candidates:SEED})});
+          list=SEED;
+        }
+        list=list.map(c=>({...c,openToWork:pb(c.openToWork),taqaCertified:normTC(c.taqaCertified),email:c.email||'',phone:c.phone||'',currentCompany:c.currentCompany||'',notes:Array.isArray(c.notes)?c.notes:[]}));
+        setCands(list);
+        setSync('ok');
+      })
+      .catch(err=>{
+        clearTimeout(timeout);
+        if(err.name==='AbortError'){showToast('Sheets timeout — working offline','error');}
+        else{showToast('Could not reach Google Sheets — working offline','error');}
+        setSync('error');
+      });
+    return()=>{controller.abort();clearTimeout(timeout);};
   },[]);
 
   async function handleUpdate(u){
